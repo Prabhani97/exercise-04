@@ -1,0 +1,53 @@
+---
+title: "Wordle Game"
+format: html
+editor: visual
+---
+
+## Step 01
+
+```{r}
+load_dictionary <- function(filename) {
+  x <- readLines(filename)
+  x <- x[x != "words"]      
+  x <- toupper(x)          
+  return (x)
+}
+```
+
+```{r}
+valid_list <- load_dictionary("/Users/pha268/Downloads/ANT 388C/exercise-04/collins-scrabble-words-2019.txt")
+solution_list <- load_dictionary("/Users/pha268/Downloads/ANT 388C/exercise-04/google-10000-english-usa-no-swears.txt")
+
+str(valid_list)
+str(solution_list)
+
+sum(nchar(valid_list) == 5)
+sum(nchar(solution_list) == 5)
+
+```
+
+## Step 02
+
+```{r}
+solution_list <- intersect(solution_list, valid_list)
+
+length(solution_list)
+
+```
+
+## Step 03
+
+```{r}
+pick_solution<-function(solution_list, word_length=5){
+  five_letter_words<-solution_list[nchar(solution_list)==word_length]
+  random_word<-sample(five_letter_words,1)
+  random_word_split<-strsplit(random_word,"")[[1]]
+  return (random_word_split)
+}
+```
+
+```{r}
+first_random_word_split<-pick_solution(solution_list)
+first_random_word_split
+```
