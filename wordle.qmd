@@ -6,28 +6,43 @@ editor: visual
 
 ## Step 01
 
+Looking at the strucuture of the .txt files given both files contain the word "words" on the top of the given other word lists.
+
+we need a custom function to read these dictionary type text files and to return a character vector containing all the words inside the text files. Also we need to skip the initial heading word.
+
+For that we can use the variable name "load_dictioanary" and assign a function to it which takes the file name containing the .txt files as an argument. I am using the readLines() function from R to read all text lines inside the files line by line. We skip the word "words" while reading and return the vector.
+
 ```{r}
 load_dictionary <- function(filename) {
   x <- readLines(filename)
   x <- x[x != "words"]      
-  x <- toupper(x)          
   return (x)
 }
 ```
+
+Now, I use the created above function to read my actual .txt files "collins-scrabble-words-2019.txt" and "google-10000-english-usa-no-swears.txt" into vectors named valid_list and solution_list respectively.
+
+Also using the sum() function we can test the number of words that have only 5 letters in each file. but there can be words that does not have exactly 5 letters in it in the vectors too.
 
 ```{r}
 valid_list <- load_dictionary("/Users/pha268/Downloads/ANT 388C/exercise-04/collins-scrabble-words-2019.txt")
 solution_list <- load_dictionary("/Users/pha268/Downloads/ANT 388C/exercise-04/google-10000-english-usa-no-swears.txt")
 
-str(valid_list)
+str(valid_list) # Checking data attributes
 str(solution_list)
 
-sum(nchar(valid_list) == 5)
+sum(nchar(valid_list) == 5) 
 sum(nchar(solution_list) == 5)
 
 ```
 
 ## Step 02
+
+Now I want all solution words we have in the solution_list also to be valid guesses. We have to keep only words that are in both lists for this, because the valid_list contains only the valid words, so by comparing both lists and keeping only words similar to the ones in valid_list will do our task.
+
+This above step is needed to build the wordle game because every solution must be a valid guess.
+
+For this I use, intersect(x,y) function in R, which have the ability to return elements that appear in both vectors x and y inside the function. at the end in the solution_list we have 8336 valid guesses.
 
 ```{r}
 solution_list <- intersect(solution_list, valid_list)
@@ -38,6 +53,12 @@ length(solution_list)
 
 ## Step 03
 
+Now we need a custom function again to keep words of a specific length when a vector containing words are given as an input argument. We can add a second fixed argument as word_length=5 for this function to default sort words only have 5 letters, which also has a length of the word_length.
+
+After selecting the words of 5 letters from the solution list we need to randomly choose a word as a valid guess (now hat we have only the valid guesses inside the solution_list). I am using sample() function in R to randomly pick a word. This chosen word is our hidden Wordle solution now.
+
+Also, as the next step we need to split tha randomly chosen word in to single letters. For this task we can use strsplit() function in R. And now we can return the splitted word list. We can use \[\[1\]\] to extract the character vector from that list.
+
 ```{r}
 pick_solution<-function(solution_list, word_length=5){
   five_letter_words<-solution_list[nchar(solution_list)==word_length]
@@ -47,7 +68,17 @@ pick_solution<-function(solution_list, word_length=5){
 }
 ```
 
+We provide our solution_list as the first input argument to the above created function ( second argument is fixed).
+
+The returned vector of splitted letters is easy for compare guesses we make in next steps letter by letter.
+
 ```{r}
 first_random_word_split<-pick_solution(solution_list)
 first_random_word_split
+```
+
+## Step 04
+
+```{r}
+
 ```
