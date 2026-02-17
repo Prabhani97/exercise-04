@@ -1,0 +1,34 @@
+---
+title: "wordle.qmd"
+format: html
+date: today
+---
+
+**## Step 1**
+Create your own custom function called load_dictionary() that takes a single argument, “filename”, that can be used to read in either of the two data files your downloaded.
+```{r}
+library(tidyverse) # loading in required package for "read_tsv()"
+
+# creating a function to read in downloaded data files
+load_dictionary <- function(filename) { 
+  read_tsv(filename, col_names = TRUE) # the argument "filename" will be used to easily load in the file path, as entering the URL in this function will pass it through the read_tsv() function. col_names is set to TRUE to ensure the first row of the file is the column names
+}
+```
+
+Use the function to create two variables, solution_list and valid_list, that, respectively contain vectors of possible solution words and valid words to guess. That is, you should be able to run the following to create these two vectors:
+```{r}
+# creating vectors that contain the valid words to guess using load_dictionary() and passing in the file path
+valid_list <- load_dictionary("/Users/sandanik/Documents/Repos/exercise-04/collins-scrabble-words-2019.txt")
+
+# creating vectors that contain the possible solution words using load_dictionary() and passing in the file path
+solution_list <- load_dictionary("/Users/sandanik/Documents/Repos/exercise-04/google-10000-english-usa-no-swears.txt")
+
+
+# Checking to see if the function and vectors were made correctly
+str(valid_list) # looks at structure of vector
+
+str(solution_list) # looks at structure of vector
+```
+
+**## Step 2**
+Winnow your variable solution_list to only include words that are included in valid_list. There are multiple ways that you could do this, but the set operation function, intersection() is an easy way. Use R help to look at the documentation for the intersection() function to see if you can get that to work. How many words are in your updated solution_list vector?
