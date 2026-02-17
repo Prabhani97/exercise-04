@@ -10,10 +10,10 @@ Looking at the strucuture of the .txt files given both files contain the word "w
 
 we need a custom function to read these dictionary type text files and to return a character vector containing all the words inside the text files. Also we need to skip the initial heading word.
 
-For that we can use the variable name "load_dictioanary" and assign a function to it which takes the file name containing the .txt files as an argument. I am using the readLines() function from R to read all text lines inside the files line by line. We skip the word "words" while reading and return the vector.
+For that we can use the variable name "text_file_content" and assign the function to it which takes the file name containing the .txt files as an argument. I am using the readLines() function from R to read all text lines inside the files line by line. We skip the word "words" while reading and return the vector.
 
 ```{r}
-load_dictionary <- function(filename) {
+text_file_content <- function(filename) {
   x <- readLines(filename)
   x <- x[x != "words"]      
   return (x)
@@ -79,6 +79,83 @@ first_random_word_split
 
 ## Step 04
 
-```{r}
+First we define a custom function play_wordle which takes 3 arguments,\[1\] the answer to the puzzle, a list of valid guesses and a value for “number of guesses”.
 
+1\) Giving instruction
+
+2\) displaying what letters left - which he has not guessed yet
+
+3\) Prompting the player for a guess using readline() function, which can take a character string as an argument,
+
+and check that their guess is valid , that it contains the correct number of letters and is a word included in the “valid” word list
+
+4\) Comparing the guess to the solution word and generate the necessary feedback, e.g., `*` for *in the word and in the correct position*, `+` for *in the word but in the wrong position*, and `-` for *not in the word*. For this step, try writing a separate “helper” function, `evaluate_guess()`,
+
+```{r}
+play_wordle <- function(solution, valid_list, num_guesses = 6){
+  
+  # first step - Explaining the player the rules of the game
+  
+  word_length<-5
+  cat("Hello! Let's play Wordle!!")
+  cat("You have", num_guesses, "tries to guess a word of length", word_length, "\n")
+  cat("here are the rules!","\n","You will get a * for in the word and in the correct position, + for in the word but in the wrong position, and - for not in the word")
+  
+  # second step - Displaying what letters the player has not yet guessed
+  
+  letters_left_to_guess <- LETTERS # built-in dataset, LETTERS, contains the 26 capital letters in the English alphabet 
+
+  for (guess in 1:num_guesses) {
+    cat("\n","\n","Letters left:", letters_left_to_guess, "\n")
+    
+    # third step - Prompting the player for a guess 
+    
+    cat("Now time to enter your guess !")
+    guessed_word<- readline("Please enter your guess",guess,"and pres <enter> : ")
+    guessed_word<-toupper(guessed_word)
+    
+    # and checking that their guess is valid 
+    # First checking word length
+    
+    if (nchar(guessed_word) != word_length) {
+      cat("Wrong length, must be", word_length, "letters.\n\n")
+      g <- g - 1
+      next
+    }
+    # Next checking of the word is in the valid_list
+    
+    
+    if (!(guessed_word %in% valid_list)) {
+      cat("What you entered above is invalid.Please enter a valid word.\n")
+      readline( "Please enter a valid word then press <enter>: ")
+      guess<-guess-1
+      next
+    }
+    
+    # fourth step - 
+      
+    
+    
+    
+}
+  
+}
+```
+
+Defining the additional function needed to check the guessed word. This function takes, as arguments, the player’s guess and the value of the **solution** variable.
+
+```{r}
+evaluate_guess<- function(guessed_word, solution){
+  
+}
+```
+
+```{r}
+guessed_word<- readline("Please enter a word: ")
+guessed_word<-toupper(guessed_word)
+guessed_word
+```
+
+```{r}
+play_wordle("Hello",valid_list)
 ```
