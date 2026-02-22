@@ -5,30 +5,210 @@ date: today
 ---
 
 **## Step 1**
-Create your own custom function called load_dictionary() that takes a single argument, “filename”, that can be used to read in either of the two data files your downloaded.
+*Create a custom function called load_dictionary() that takes a single argument, “filename”, to read in either of the two data files:*
+
+Here, we first download the package needed to use the "read_tsv()" function. Then, we are using the "function()" function to create a function called load_dictionary() that uses the argument "filename" to easily load in the data files via their file name. "read_tsv()" will read the text files and assign the output to our "load_dictionary" funciton. col_names() is set to TRUE to ensure the first row of the file ("words") is used as a header.
 ```{r}
 library(tidyverse) # loading in required package for "read_tsv()"
 
+
 # creating a function to read in downloaded data files
-load_dictionary <- function(filename) { 
-  read_tsv(filename, col_names = TRUE) # the argument "filename" will be used to easily load in the file path, as entering the URL in this function will pass it through the read_tsv() function. col_names is set to TRUE to ensure the first row of the file is the column names
+load_dictionary <- function(filename) { # using "filename" as our single arguments
+  read_tsv(filename, col_names = TRUE) # using read_tsv() to load in text files
 }
 ```
 
-Use the function to create two variables, solution_list and valid_list, that, respectively contain vectors of possible solution words and valid words to guess. That is, you should be able to run the following to create these two vectors:
-```{r}
-# creating vectors that contain the valid words to guess using load_dictionary() and passing in the file path
-valid_list <- load_dictionary("/Users/sandanik/Documents/Repos/exercise-04/collins-scrabble-words-2019.txt")
+*Use the function to create two variables, solution_list and valid_list. That is, you should be able to run the following to create these two vectors:*
 
-# creating vectors that contain the possible solution words using load_dictionary() and passing in the file path
-solution_list <- load_dictionary("/Users/sandanik/Documents/Repos/exercise-04/google-10000-english-usa-no-swears.txt")
+Here, we are using our creating two variables ("solution_list" and "valid_list") using our new function. The filenames that were added to our repo are being used as the "filename" argument.
+```{r}
+# creating vectors that contain possible valid words
+valid_list <- load_dictionary("collins-scrabble-words-2019.txt")
+
+# creating vectors that contain possible solution words
+solution_list <- load_dictionary("google-10000-english-usa-no-swears.txt")
 
 
 # Checking to see if the function and vectors were made correctly
-str(valid_list) # looks at structure of vector
+# str() looks at the internal structure of our objects
+str(valid_list)
 
-str(solution_list) # looks at structure of vector
+str(solution_list)
 ```
 
 **## Step 2**
-Winnow your variable solution_list to only include words that are included in valid_list. There are multiple ways that you could do this, but the set operation function, intersection() is an easy way. Use R help to look at the documentation for the intersection() function to see if you can get that to work. How many words are in your updated solution_list vector?
+*Winnow your variable solution_list to only include words that are included in valid_list.*
+
+To edit our "solution_list" variable to only contain words from "valid_list," we are using the intersect() function to find the common elements; we are assigning this to a new object, "possible_list". Since the set operations use vectors as the input, we are extracting the elements from the "words" column in our data frame to create character vectors. This was done using "$" extraction operation.
+```{r}
+# Using the intersect() function to only include words from valid list
+solution_list <- intersect(solution_list$words, valid_list$words)
+```
+*How many words are in your updated solution_list vector?* The solution_list variable went from 9,884 words to 8,336.
+
+
+**## Step 3**
+*Write a function called pick_solution() that [1] removes words from solution_list that are not 5 letters, [2] randomly chooses a word from those that remain, and [3] splits that word into a vector of single-character elements.*
+
+Here, we are generating a pick solution function that does the three things described above. We have added solution_list and word_length (set to 5) as arguments of our function. word_length make this function more flexible, as it can be set to different values like 3 or 6 to have different word lengths if desired. However, we will keep word_length at its default value for this Wordle challenge.
+
+The first part of our function subsets the solution_list variable to contain only words that are 5 letters long; we do this by extracting from our solution_list variable and applying the baseR function, nchar(), and using our argument word_length, which is set to 5 as default. This is assigned to the same variable solution_list.
+
+Then, the function randomly samples the subsetted list to choose one word. This is assigned to an object called "random_word" so only the chosen word can/will be used as an argument later in the function. That chosen word is split using the baseR function "strsplit()," where it takes subsetted solution_list and splits it into single characters (by setting the split argument to ""). Since strsplit() will return a list, [[1]] is added to extract the character vector inside of the list.
+
+Lastly, the randomly chosen, split word is returned using the return() function. Although this may not be necessary, this was added for good practice!
+```{r}
+# creating a function that meets the criteria above
+pick_solution <- function(solution_list, word_length = 5) {
+  solution_list <- solution_list[nchar(solution_list) == word_length] # selecting words that are 5 letters in length
+  random_word <- sample(solution_list, size = 1) # randomly sampling a word from updated solution_list
+  split_solution <- strsplit(random_word, split = "")[[1]] # splitting chosen word into single-character elements
+  return(split_solution) # returning a random word that has been split from solution_list
+}
+
+solution <- pick_solution(solution_list)
+
+```
+
+**## Step 4**
+Create two more functions. The first should be called play_wordle() and it should take three arguments: [1] the answer to the puzzle, [2] a list of valid guesses, and [3] a value for “number of guesses”, which you should set to the original Wordle game default of 6.
+
+```{r}
+evaluate_guess <- function(split_guess, solution) {
+  word_length <- length(solution)
+  
+  response <- rep("-", times = word_length)
+  for(i in 1:word_length) {
+    if(split_guess[i] == solution[i]) {
+      response[i] <- "*"
+      solution[i] <- "-" 
+    }
+  }
+  
+  for(i in 1:word_length) {
+    if(response[i] != "*") {
+      position <- match(split_guess[i], solution)
+      if(!is.na(position)) {
+        response[i] <- "+"
+        solution <- "-"
+      }
+    }
+  }
+  return(response)
+}
+
+```
+
+
+```{r}
+play_wordle <- function(solution, valid_list, num_guesses = 6, word_length = 5) {
+
+  solution <- pick_solution(solution_list)
+  validlistVec <- toupper(valid_list$words)
+  
+  print(paste("You have", num_guesses, "chances to guess a word of length", word_length))
+  
+  guessNumber <- 0
+  lettersleft <- LETTERS
+  while(guessNumber < num_guesses) {
+    print(paste(c("Letters left:", lettersleft), collapse = " "))
+    
+    guessNumber <- guessNumber + 1
+    guess <- (readline(paste0("Enter guess #", guessNumber, ": ")))
+    while(nchar(guess) != word_length || !(guess %in% validlistVec)) {
+      guess <- (readline(paste0("Your guess must be ", word_length,
+                                       " letters and a valid word: ")))
+    }
+    guess <- toupper(guess)
+    split_guess <- strsplit(guess, split = "")[[1]]
+    
+    response <- evaluate_guess(split_guess, solution)
+    
+    lettersleft <- setdiff(lettersleft, split_guess)
+    
+    print(paste(strsplit(guess, "")[[1]], collapse = " "))
+    print(paste(response, collapse = " "))
+    if(all(response == "*")) {
+      print("You WON! :)")
+      return(guessNumber)
+    }
+  }
+  print(paste("You LOST :( The answer was", solution))
+  return(guessNumber)
+}
+
+```
+
+
+```{r}
+# creating the main Wordle function
+play_wordle <- function(solution, valid_list, num_guesses = 6, word_length = 5) {
+  
+  solution <- pick_solution(solution_list)
+  validlistVec <- toupper(valid_list$words)
+  
+  # telling the player game rules
+  print(paste("You have", num_guesses, "chances to guess a word of length", word_length))
+  
+  # setting initial guess number and let
+  guessNumber <- 0
+  lettersleft <- LETTERS
+  
+  # storing a history
+  guess_history <- c() # creates a vector of guesses
+  feedback_history <- list() # creates a list of feedback vectors
+  
+  # while loop to show remainingletters
+  while(guessNumber < num_guesses) { # conditional statement to ensure they still have guesses available
+    print(paste(c("Letters left:", lettersleft), collapse = " ")) # concatenates and prints remaining letters
+    
+    # keeping track of guess
+    guessNumber <- guessNumber + 1
+    
+    # reading and converting guess to uppercase upon input 
+    guess <- toupper(readline(paste0("Enter guess #", guessNumber, ": ")))
+    
+    # using valid the cleaned vector and the uppercase guess for the check
+    while(nchar(guess) != word_length || !(guess %in% validlistVec)) {
+      guess <- toupper(readline(paste0("Your guess must be ", word_length,
+                                       " letters and a valid word: ")))
+    }
+    
+    split_guess <- strsplit(guess, split = "")[[1]]
+    
+    response <- evaluate_guess(split_guess, solution)
+    
+    lettersleft <- setdiff(lettersleft, split_guess)
+    
+    guess_history <- c(guess_history, guess)
+    feedback_history[[length(feedback_history) + 1]] <- response
+    
+    print(paste(split_guess, collapse = " "))
+    print(paste(response, collapse = " "))
+    
+    if(all(response == "*")) {
+      print("You WON! :)")
+      print("Feedback history:")
+      for(i in 1:length(guess_history)) {
+        print(paste(guess_history[i], ":", paste(feedback_history[[i]], collapse = " ")))
+      }
+      return(guessNumber)
+    }
+  }
+  
+  print(paste("You LOST :( The answer was", paste(solution, collapse="")))
+  print("Feedback history:")
+  for(i in 1:length(guess_history)) {
+    print(paste(guess_history[i], ":", paste(feedback_history[[i]], collapse = " ")))
+  }
+  
+  print("Total number of guesses:")
+  return(guessNumber)
+}
+```
+
+
+```{r}
+play_wordle(solution, valid_list)
+```
+
