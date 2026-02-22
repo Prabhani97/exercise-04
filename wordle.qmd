@@ -31,6 +31,8 @@ solution_list <- load_dictionary("/Users/pha268/Downloads/ANT 388C/exercise-04/g
 str(valid_list) # Checking data attributes
 str(solution_list)
 
+print(solution_list)
+
 sum(nchar(valid_list) == 5) 
 sum(nchar(solution_list) == 5)
 
@@ -73,8 +75,8 @@ We provide our solution_list as the first input argument to the above created fu
 The returned vector of splitted letters is easy for compare guesses we make in next steps letter by letter.
 
 ```{r}
-first_random_word_split<-pick_solution(solution_list)
-first_random_word_split
+solution<-pick_solution(solution_list)
+solution
 ```
 
 ## Step 04
@@ -91,8 +93,12 @@ and check that their guess is valid , that it contains the correct number of let
 
 4\) Comparing the guess to the solution word and generate the necessary feedback, e.g., `*` for *in the word and in the correct position*, `+` for *in the word but in the wrong position*, and `-` for *not in the word*. For this step, try writing a separate “helper” function, `evaluate_guess()`,
 
+5\) After getting the feedback, for the end game purposes, we add the guessed word in that round and the feedback given from the game for that word to a list, which was initially created as a empty list outside the for loop.
+
+6\) After checking the feedback whether it has 5 "\*"s, we give the feedback as they won or lost along with their guessed word summary and feedbacks given to them.
+
 ```{r}
-play_wordle <- function(solution, valid_list, num_guesses = 6){
+play_wordle <- function(solution, valid_list, num_guesses = 1){
   
   # first step - Explaining the player the rules of the game
   
@@ -104,14 +110,19 @@ play_wordle <- function(solution, valid_list, num_guesses = 6){
   # second step - Displaying what letters the player has not yet guessed
   
   letters_left_to_guess <- LETTERS # built-in dataset, LETTERS, contains the 26 capital letters in the English alphabet 
+  
+  guessed_words_history <- list()
+  feedback_given_history <- list()
 
   for (guess in 1:num_guesses) {
+    cat("\n",guess)
     cat("\n","\n","Letters left:", letters_left_to_guess, "\n")
     
     # third step - Prompting the player for a guess 
     
     cat("Now time to enter your guess !")
-    guessed_word<- readline("Please enter your guess",guess,"and pres <enter> : ")
+    prompt=paste("Please enter your guess number", guess,"and press <enter> : ")
+    guessed_word<- readline(prompt)
     guessed_word<-toupper(guessed_word)
     
     # and checking that their guess is valid 
@@ -119,7 +130,7 @@ play_wordle <- function(solution, valid_list, num_guesses = 6){
     
     if (nchar(guessed_word) != word_length) {
       cat("Wrong length, must be", word_length, "letters.\n\n")
-      g <- g - 1
+      guess <- guess - 1
       next
     }
     # Next checking of the word is in the valid_list
@@ -127,35 +138,115 @@ play_wordle <- function(solution, valid_list, num_guesses = 6){
     
     if (!(guessed_word %in% valid_list)) {
       cat("What you entered above is invalid.Please enter a valid word.\n")
-      readline( "Please enter a valid word then press <enter>: ")
       guess<-guess-1
+      cat("\n",guess)
+      readline( "Please enter a valid word then press <enter>: ")
       next
     }
     
-    # fourth step - 
+    
+    # fourth step - Comparing the guess to the solution word and generate the necessary feedback
       
+    output<- evaluate_guess(guessed_word, solution)
+    feedback<-output[[1]]
     
+    # Appending guessed word in that round and the feedback to a list to show at the end
     
+    guessed_words_history <- append(guessed_words_history, guessed_word)
+    feedback_given_history <- append(feedback_given_history, feedback)
     
-}
+    # Shwoing letters left to guess
+    
+    letters_left <- setdiff(letters_left_to_guess, unique(guessed_letters))
+    
+    # Checking for feedback 
+    
+    if (all(feedback == "*")){
+      print("You won the game by guessing the correct word!!")
+      cat("Your guesses in the game are:", for (i in guessed_words_history){print(guessed_words_history[i])}, "\n","feedbacks given are:", for (i in feedback_given_history){print(feedback_given_history[i])},"\n")
+    }
+    
+  }
   
+  print("You lost the game!")
+  
+  cat("Your guesses in the game are:", for (i in guessed_words_history){print(guessed_words_history[i])}, "\n","feedbacks given are:", for (i in feedback_given_history){print(feedback_given_history[i])},"\n")
 }
 ```
 
 Defining the additional function needed to check the guessed word. This function takes, as arguments, the player’s guess and the value of the **solution** variable.
 
+Here my guessed word is format of "HELLO", my solution I get from pick_solution() fucntion is format of "R" "O" "C" "K" "S". I need to make the formats similar in order to compare. We can accomplish strsplit() the guessed word.
+
+So, I convert guessed word into the format of solution. Then we can compare in a for loop and give feedback.
+
+\# Creating a n length string as feedback comprised of "-"s, so that we can replace with "\*" and "+"s after checking.
+
+Our 1st step- Checking for correct letters in correct positions and replacing them with a "\*"
+
+2nd approach - checking for correct letters but not in the correct positions
+
+**first approach** - when checking for correct letters in correct positions and correct letters in wrong positions I did not consider removing the ideally matched letter from the original solution word, it caused me a problem in second step as identifying the same letter as a correct letter in a wrong position if we had the same letter twice in the word.
+
+example: if our guessed_word_test was "AGAIN" and solution_test was the list("C","L","A","S","S") it gave the feedback of "+" "-" "+" "-" "-", which was misleading, which lead to player think there are two "A"s in the solution.
+
+**second approach** - when checking for correct letters in correct positions and correct letters in wrong positions I did consider removing the ideally matched letter from the original solution word, above problem did not occur. then the feedback was "-" "-" "+" "-" "-". This does not give the impression of having two "A"s in the word.
+
+**third approach** - when trying to compare the guessed word "PLAZA" and solution_test was the list("R","A","I","S","E"), feedback was "-" "-" "+" "-" "+", this was also a problem for me. When we reached Jamie about it she said this extent is not necessary to be solved.
+
 ```{r}
 evaluate_guess<- function(guessed_word, solution){
+  
+  guessed_letters <- strsplit(guessed_word, split = "")[[1]] #converting guessed word into the format of solution.
+  
+  n <- length(solution)
+  feedback<-rep("-",n)
+  
+  
+  
+  # Checking for correct letters in correct positions
+  
+  for (i in 1:n){
+    if (guessed_letters[i] == solution[i]) {
+      feedback[i] <- "*"
+      solution[i]<- "INV"
+      
+    }
+  }
+  
+  # Now checking for correct letters but not in the correct positions, using a loop inside a loop what I want to do is try to match letters in guessed_word and the solution one to one.
+  
+  for (i in 1:n){
+    for (j in 1:n){
+      if (guessed_letters[j]== solution[i]){
+        feedback[j] <- "+"
+        
+        
+      }
+    }
+
+  }
+  
+  final_solution<- paste(solution, collapse = " ") # I need to return both feedback and solution from the function.
+  
+  output <- list(feedback, final_solution)
+  return(output)
+  
+  
   
 }
 ```
 
 ```{r}
-guessed_word<- readline("Please enter a word: ")
-guessed_word<-toupper(guessed_word)
-guessed_word
+guessed_word_test<-"PLAZA"
+solution_test<-list("C","L","A","S","S")
+output<-evaluate_guess(guessed_word_test,solution_test)
+output
+
 ```
 
 ```{r}
-play_wordle("Hello",valid_list)
+
+feedback<-play_wordle(solution,valid_list)
+feedback
 ```
