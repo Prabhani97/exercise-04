@@ -101,46 +101,6 @@ evaluate_guess <- function(split_guess, solution) {
 
 
 ```{r}
-play_wordle <- function(solution, valid_list, num_guesses = 6, word_length = 5) {
-
-  solution <- pick_solution(solution_list)
-  validlistVec <- toupper(valid_list$words)
-  
-  print(paste("You have", num_guesses, "chances to guess a word of length", word_length))
-  
-  guessNumber <- 0
-  lettersleft <- LETTERS
-  while(guessNumber < num_guesses) {
-    print(paste(c("Letters left:", lettersleft), collapse = " "))
-    
-    guessNumber <- guessNumber + 1
-    guess <- (readline(paste0("Enter guess #", guessNumber, ": ")))
-    while(nchar(guess) != word_length || !(guess %in% validlistVec)) {
-      guess <- (readline(paste0("Your guess must be ", word_length,
-                                       " letters and a valid word: ")))
-    }
-    guess <- toupper(guess)
-    split_guess <- strsplit(guess, split = "")[[1]]
-    
-    response <- evaluate_guess(split_guess, solution)
-    
-    lettersleft <- setdiff(lettersleft, split_guess)
-    
-    print(paste(strsplit(guess, "")[[1]], collapse = " "))
-    print(paste(response, collapse = " "))
-    if(all(response == "*")) {
-      print("You WON! :)")
-      return(guessNumber)
-    }
-  }
-  print(paste("You LOST :( The answer was", solution))
-  return(guessNumber)
-}
-
-```
-
-
-```{r}
 # creating the main Wordle function
 play_wordle <- function(solution, valid_list, num_guesses = 6, word_length = 5) {
   
