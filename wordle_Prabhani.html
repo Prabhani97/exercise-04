@@ -171,7 +171,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>solution<span class="ot">&lt;-</span><span class="fu">pick_solution</span>(solution_list)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>solution</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "D" "I" "A" "N" "E"</code></pre>
+<pre><code>[1] "D" "I" "F" "F" "S"</code></pre>
 </div>
 </div>
 </section>
@@ -305,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Checking for correct letters in correct positions</span></span>
 <span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (guessed_letters[i] <span class="sc">==</span> solution[i]) {</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (guessed_letters[i] <span class="sc">==</span> solution_copy[i]) {</span>
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>      feedback[i] <span class="ot">&lt;-</span> <span class="st">"*"</span></span>
 <span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>      solution_copy[i]<span class="ot">&lt;-</span> <span class="st">"INV"</span></span>
 <span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      guessed_letters[i] <span class="ot">&lt;-</span> <span class="st">"INV"</span></span>
@@ -317,7 +317,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
 <span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (guessed_letters[j]<span class="sc">==</span> solution[i] <span class="sc">&amp;&amp;</span> feedback[j] <span class="sc">==</span> <span class="st">"-"</span> <span class="sc">&amp;&amp;</span> solution[i] <span class="sc">!=</span> <span class="st">"INV"</span>){</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (guessed_letters[j]<span class="sc">==</span> solution_copy[i] <span class="sc">&amp;&amp;</span> feedback[j] <span class="sc">==</span> <span class="st">"-"</span> <span class="sc">&amp;&amp;</span> solution_copy[i] <span class="sc">!=</span> <span class="st">"INV"</span>){</span>
 <span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>        feedback[j] <span class="ot">&lt;-</span> <span class="st">"+"</span></span>
 <span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>        solution_copy[i] <span class="ot">&lt;-</span> <span class="st">"INV"</span></span>
 <span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>      }</span>

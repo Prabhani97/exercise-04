@@ -231,7 +231,7 @@ evaluate_guess<- function(guessed_word, solution){
   # Checking for correct letters in correct positions
   
   for (i in 1:n){
-    if (guessed_letters[i] == solution[i]) {
+    if (guessed_letters[i] == solution_copy[i]) {
       feedback[i] <- "*"
       solution_copy[i]<- "INV"
       guessed_letters[i] <- "INV"
@@ -243,7 +243,7 @@ evaluate_guess<- function(guessed_word, solution){
   
   for (i in 1:n){
     for (j in 1:n){
-      if (guessed_letters[j]== solution[i] && feedback[j] == "-" && solution[i] != "INV"){
+      if (guessed_letters[j]== solution_copy[i] && feedback[j] == "-" && solution_copy[i] != "INV"){
         feedback[j] <- "+"
         solution_copy[i] <- "INV"
       }
