@@ -81,7 +81,7 @@ solution
 
 ## Step 04
 
-First I define a custom function play_wordle which takes 3 arguments,\[1\] the answer to the puzzle, a list of valid guesses and a value for “number of guesses”.
+First I define a custom function "play_wordle" which takes 3 arguments,\[1\] the answer to the puzzle, a list of valid guesses and a value for “number of guesses”.
 
 1\) It gives the game instructions to the player first
 
@@ -100,6 +100,7 @@ and check that their guess is valid , that it contains the correct number of let
 7\) If not the player is shown that he has lost the game along with guess history and feedbacks given to each. also the real solution is also displayed to the player.
 
 ```{r}
+
 play_wordle <- function(solution, valid_list, num_guesses = 6){
   
   # first step - Explaining the player the rules of the game
@@ -261,5 +262,7 @@ evaluate_guess<- function(guessed_word, solution){
 ```
 
 ```{r}
+#| include: false
+#| eval: false
 game<-play_wordle(solution,valid_list)
 ```
