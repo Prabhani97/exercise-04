@@ -262,6 +262,6 @@ evaluate_guess<- function(guessed_word, solution){
 ```
 
 ```{r}
-#| include: false
+#| eval: false
 game<-play_wordle(solution,valid_list)
 ```
