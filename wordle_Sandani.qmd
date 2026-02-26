@@ -1,6 +1,13 @@
 ---
 title: "wordle_Sandani.qmd"
 format: html
+author: Sandani Kottegoda
+date: today
+---
+
+---
+title: "wordle_Sandani.qmd"
+format: html
 date: today
 ---
 
