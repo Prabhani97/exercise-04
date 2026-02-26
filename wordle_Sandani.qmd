@@ -1,0 +1,277 @@
+---
+title: "wordle_Sandani.qmd"
+format: html
+author: Sandani Kottegoda
+date: today
+---
+
+---
+title: "wordle_Sandani.qmd"
+format: html
+date: today
+---
+
+*Note: Prabhani and I discussed and worked together, but we used separate approaches, so that is why we have different files in a shared repo!*
+
+
+
+
+**## Step 1**:
+
+*Create a custom function called load_dictionary() that takes a single argument, “filename”, to read in either of the two data files:*:
+
+I first downloaded the package needed to use the "read_tsv()" function--tidyverse. Then, I used "function()" to create a function called load_dictionary() that uses the argument "filename" to easily load in the data files via their file name. "read_tsv()" will read the text files and assign the output to our new "load_dictionary" function. col_names() is set to TRUE to ensure the first row of the file ("words") is used as a header.
+```{r}
+library(tidyverse) # loading in required package for "read_tsv()"
+
+
+# creating a function to read in downloaded data files
+load_dictionary <- function(filename) { # using "filename" as the single argument
+  read_tsv(filename, col_names = TRUE) # using read_tsv() to load in text files
+}
+```
+
+*Use the function to create two variables, solution_list and valid_list.*:
+
+Here, I am creating two variables ("solution_list" and "valid_list") using our new function. The filenames that were added to our repo are being used as the "filename" argument, meaning they will be passed through the read_tsv() function.
+```{r}
+# creating vectors that contain possible valid words from the list of Official Scrabble Words
+valid_list <- load_dictionary("collins-scrabble-words-2019.txt")
+
+# creating vectors that contain possible solution words from the most common words list
+solution_list <- load_dictionary("google-10000-english-usa-no-swears.txt")
+
+
+# Checking to see if the function and vectors were made correctly
+
+# str() will look at the internal structure of our objects
+str(valid_list)
+
+str(solution_list)
+```
+
+
+**## Step 2**:
+
+*Winnow your variable solution_list to only include words that are included in valid_list.*:
+
+To edit our "solution_list" variable to only contain words from "valid_list," I am using the intersect() function to find the common elements; I am assigning this to "solution_list". Since the set operations use vectors as the input, I extracted the elements from the "words" column in our data frame to create character vectors. This was done using "$" extraction operation.
+```{r}
+# Using the intersect() function to only include words from valid list
+solution_list <- intersect(solution_list$words, valid_list$words)
+```
+*How many words are in your updated solution_list vector?* The solution_list variable went from 9,884 words to 8,336.
+
+
+**## Step 3**:
+
+*Write a function called pick_solution() that [1] removes words from solution_list that are not 5 letters, [2] randomly chooses a word from those that remain, and [3] splits that word into a vector of single-character elements.*:
+
+Here, I am generating a pick solution function that does the three things described above. I have added solution_list and word_length (set to 5) as arguments of the function. word_length make this function more flexible, as it can be set to different values like 3 or 6 to have different word lengths if desired. However, we will keep word_length at its default value for this Wordle challenge.
+
+The first part of the function subsets the solution_list variable to contain only words that are 5 letters long; I do this by extracting from our solution_list variable and applying the baseR function, nchar(), and using our argument word_length, which is set to 5 as default. This is assigned to the same variable "solution_list".
+
+Then, the function randomly samples the subsetted list to choose one word. This is assigned to an object called "random_word" so only the chosen word will be used as an argument later in the function. 
+
+That chosen word is split using the baseR function "strsplit()," where it takes the subsetted solution_list (the random word) and splits it into single characters (by setting the split argument to ""). Since strsplit() will return a list, [[1]] is added to extract the character vector inside of the list. This is assigned to "split_solution."
+
+Lastly, the randomly chosen, split word is returned using the return() function. Although this may not be necessary, this was added for good practice! I also assigned the result of the function to a new variable called solution, as directed.
+```{r}
+# creating a function that meets the criteria above
+pick_solution <- function(solution_list, word_length = 5) {
+  solution_list <- solution_list[nchar(solution_list) == word_length] # selecting words that are 5 letters in length
+  random_word <- sample(solution_list, size = 1) # randomly sampling a word from updated solution_list
+  split_solution <- strsplit(random_word, split = "")[[1]] # splitting chosen word into single-character elements
+  return(split_solution) # returning a random word that has been split from solution_list
+}
+
+# assigning the function result to the variable "solution"
+solution <- pick_solution(solution_list)
+
+```
+
+
+**## Step 4**:
+
+***Note: I added the "evaluate_guess()" code chunk first, so it can be run before "play_wordle()"!***
+
+*Create two more functions. The first should be called play_wordle() and it should take three arguments: [1] the answer to the puzzle, [2] a list of valid guesses, and [3] a value for “number of guesses”, which you should set to the original Wordle game default of 6.*:
+
+I created the "play_wordle()" function by using "function()," which uses the result of the "pick_solution()" function (assigned to "solution"), the list of valid guesses ("valid_list"), and the number of guesses (set to 6 as default for Wordle), as the arguments.
+
+**Inside the function:**
+
+**Function Setup**:
+
+I began the function by first extracting the words column (using "$") from valid_list to get a character vector, which is necessary later in the function. I used "toupper" to ensure all the words are uppercase, so that I am working with words and guesses in the same format, ultimately preventing the function from not working due to case sensitivity. This character vector was assigned to "validlistVec."
+
+*1. At the onset, tell the player the rules of the game, e.g., “You have … chances to guess a word of length …”*:
+To do this, I use the "print()" and "paste()" functions to tell the number of guesses the player has. I used the paste(), as it allows me to paste strings of characters to the argument "num_guesses," which is set to 6, into one character string!
+
+I then begin setting up how the function will keep track of the guesses and the letters left. The number of guesses is monitored by the variable "guessNumber," and is set to 0 first to tell R that the player has not made any guesses yet. The full alphabet is loaded in using the built-in dataset LETTERS, which contains all the letters in uppercase, being consistent with case sensitivity; this was assigned the variable "lettersleft."
+
+To be able to print out the player's guess and feedback history, I added the variables "guess_history" and "feedback_history," which are initially assigned to empty vectors and lists, respectively, to store the game's progress until it is over.
+
+**Game Loop**:
+
+*2. Display what letters the player has not yet guessed (at the onset, this would be all 26 letters of the alphabet), e.g., “Letters left: …”*
+
+*3. Prompt the player for a guess, e.g., “Enter guess number …”, read in their guess, and check that their guess is valid (i.e., that it contains the correct number of letters and is a word included in the “valid” word list).*:
+
+To begin the Wordle game loop, I used while loops. This will allow the chunk of code to be repeatedly executed as long as the condition remains. The while loop begins with a conditional statement that will ensure the game continues until the player wins or runs of out guesses. If the player meets that statement, the letters that are still available are displayed using a combination of "print()" and "paste();" collapse() is used to concatenate the elements into a single string to make the output clean and avoid excessive printing. The "guessNumber" variable is then updated by adding 1 every time it goes through the loop to keep track of the guesses. R is then able to see if the number of guesses (by guessNumber) meets the condition statement in the while loop.
+
+The player's guess is captured through a new variable called "guess." paste0() is used to create a string using a character string and the value of "guessNumber" to tell the player where they are in the game. readline() allows the player to input their guess in the terminal, allowing the game to be interactive. toupper() was used as a safety net and convert the word to uppercase to account for the different inputs the player might have, such as "Apple," "apple," or "APPLE." If this is not done, R might count these different entries as different words/guesses. This is important for looking through validlistVec later in the function as well.
+
+To ensure that the guess is 5 letters and a valid word, I created another while loop within the while loop. This nestled while loop uses conditional statements: it checks the length of the player's guess with nchar() and whether it is in the validlistVec using %in%. != and ! is interpreted as NOT, and "||" is the OR operator. If either of these conditions are met (not 5 letters or not in the valid list), a prompt is given, telling the player the rules again. The same guess variable with "readline()" and "toupper()" are used to allow the player to enter another guess that follows the guidelines.
+
+The guess is then split using "strsplit(guess, split = "")[[1]]," which is assigned to "split_guess." It does the same thing as before, where it separates the word into single characters; since a list is returned from strsplit() (designed for handling multiple words at once), double brackets are used to give a character vector of the letters. This step is necessary for evaluating the guess in "evaluate_guess()" in element-wise comparisons.
+
+**Evaluating the guess with evaluate_guess()**:
+
+*4. Compare the guess to the solution word and generate the necessary feedback.*:
+
+To evaluate the player's guess and generate feedback, the function "evaluate_guess()" was created. This function was made by using "function()" and using the arguments "split_guess" from "play_wordle()" and solution from "pick_solution." Within the function, I assign the length of the solution to a variable called "word_length," which should be 5. I then create a new variable called "response" that will ultimately generate feedback. "rep()" is used to replicate "-" 5 times (length of the word) to initialize the function and assume every letter is wrong.
+
+Two for loops are used in this function. The first pass and for loop is used to make element-wise comparisons between the guess and solution (e.g., the first letter of the guess is compared to the first letter of the solution; the same is done for the second, third, etc.); this is captured by "if(split_guess[i] == solution[i])." "solution" has already been split by "strsplit()" in "pick_solution()." If they match, "-" changes to "*" in the response, showing that the letter is correct and in the right position. If the condition is not met, the letter in the solution is changed to "-" to mask the letter so it is not counted again in the next loop.
+
+The second for loops looks at the letters that weren't perfect matches with the position are maybe somewhere else in the word. "if(response[i] != "*")" ignores the letters that were already marked as correct. "match(split_guess[i], solution)" looks to see if the current letter is somewhere else in the remaining solution; this is assigned to the variable "position". If position is not NA, a "+" is added to that position in the response, denoting that the letter is in the word, but in the wrong position. If it is NA, a "-" remains, showing that the letter is in the word; "solution[position]" should account for the amount of times a letter appears in the word (e.g., guessing APPLE when the word would PRICE; accounting for the number of Ps). Lastly, the response is returned using "return()".
+
+
+**Back to "play_wordle()" game loop**:
+
+In the while loop, "response <- evaluate_guess(split_guess, solution)" passes the guess and the solution to the "evaluate_guess()" function, return a vector of symbols (*,+,-) that denote the correct letters and positions of the guess relative to the solution. This result is stored in the variable "response" so it can be printed to the player and saved in the game history.
+
+*5. Update the list of letters not yet guessed.*:
+
+"lettersleft <- setdiff(lettersleft, split_guess)" updates the available letters left to use from the alphabet. The letters are removed every round based on the player's guess. "setdiff()" performs a set operation the identifies which characters in the alphabet are not present from the most recent guess, effectively substracting the used letters from the display.
+
+"guess_history <- c(guess_history, guess)" appends the current 5-letter word to the running "guess_history" vector. "c()" combines the existing list of previous guess to the newest guess, creating a chronological history of the player's guesses. This is a simple vector because it only stores words. "feedback_history[[length(feedback_history) + 1]] <- response" stores the feedback of each guess (a vector of *, +, and -) as a list; "[length(feedback_history) + 1]" in the line of code places the new feedback response in the next part of the list to prevent overwriting the results of previous rounds. This is a list because it store multiple, distinct vectors for each round.
+
+"print(paste(split_guess, collapse = " "))" and "print(paste(response, collapse = " "))" print the internal character vectors into a format that is easily viewed by the player. This combination of "print()," "paste()," and "collapse()" prints the letters and the corresponding symbols to be printed in succession, allowing the player to see which letter corresponds with which symbol.
+
+*6. Check if the puzzle was solved. The function should indicate that the player WON the game and print out their guess and feedback history. If not, the function should prompt the player for another guess, unless they have already hit the maximum number of guesses allowed.*:
+
+At the end of the while loop, if the player has solved the puzzle, this is interpreted by the code chunk beginning with " if(all(response == "*")) {..." The "all()" function verifies that every character in the feedback vector has the correct position symbol through TRUE/FALSE values. The code then iterates through the stored guess and feedback histories. Lastly, the "return()" function exits the function, preventing further loops and providing the total guess count in the final output. If there is any position that is. + or -, the game continues until the player runs out of guesses.
+
+*7. If all guesses are exhausted, the function should indicate that the player LOST the game and, again, print out their guess and feedback history.*:
+
+If the player runs out of guesses without any successful match, the last code chunk is run ("print(paste("You LOST :( The answer was", paste(solution, collapse="")))..."), as the while loop is terminated (the condition is no longer met). "print(paste("You LOST :( The answer was", paste(solution, collapse="")))" reveals the solution, using a combination of "print()" and "paste()" functions. Then, the code gives the feedback and guess history, stored as a list and vector, respectively. Lastly, the total number of guesses is returned (should be 6).
+```{r}
+# creating a function to evaluate the guess relative to the solution word
+evaluate_guess <- function(split_guess, solution) { # using split_guess and solution as the arguments
+  word_length <- length(solution) # assigning the length of the solution to word_length
+  
+  response <- rep("-", times = word_length) # initializing, assuming every letter is wrong as default
+  # first for loop to find perfect match
+  for(i in 1:word_length) { # looks at each position in the 5-letter word
+    if(split_guess[i] == solution[i]) { # compares each position between the guess and solution
+      response[i] <- "*" # for perfect matches 
+      solution[i] <- "-" # for non-matches
+    }
+  }
+  
+  # second for loop to find correct letters/wrong spots
+  for(i in 1:word_length) { # looks at each position in the 5-letter word
+    if(response[i] != "*") { # ignores perfect matches
+      position <- match(split_guess[i], solution) # looks for current letters anywhere
+      if(!is.na(position)) {
+        response[i] <- "+" # for letters in the wrong position
+        solution[position] <- "-" # for remaining, incorrect letters
+      }
+    }
+  }
+  return(response)
+}
+
+```
+
+```{r}
+# creating the main Wordle function
+play_wordle <- function(solution, valid_list, num_guesses = 6) {
+  
+  # creating a character vector from valid list and ensure they are uppercase
+  validlistVec <- toupper(valid_list$words)
+  
+  # telling the player game rules
+  print(paste("You have", num_guesses, "chances to guess a word of length 5"))
+  
+  # setting initial guess number and let
+  guessNumber <- 0
+  lettersleft <- LETTERS
+  
+  # begin storing guess and feedback histories
+  guess_history <- c() # will create a vector of the guesses
+  feedback_history <- list() # will create a list of the feedback vectors
+  
+  # while loop to repeatedly go through rounds of the game
+  while(guessNumber < num_guesses) { # conditional statement to ensure they still have guesses available
+    print(paste(c("Letters left:", lettersleft), collapse = " ")) # concatenates and prints remaining letters
+    
+    # keeping track of guess number
+    guessNumber <- guessNumber + 1
+    
+    # reading and converting guess to uppercase upon input 
+    guess <- toupper(readline(paste0("Enter guess #", guessNumber, ": ")))
+    
+    # checking if the guess is 5 letters and in the valid list
+    # if not, the prompt restating the rules and another chance is given
+    while(nchar(guess) != 5 || !(guess %in% validlistVec)) {
+      guess <- toupper(readline("Your guess must be 5 letters and a valid word: ")) 
+    }
+    
+    # splitting the guess into single characters for evaluate_guess()
+    split_guess <- strsplit(guess, split = "")[[1]]
+    
+    # storing the evaluation of the guess from "evaluate_guess()" into "response"
+    response <- evaluate_guess(split_guess, solution)
+    
+    # subtracting used letters from the letters left display
+    lettersleft <- setdiff(lettersleft, split_guess)
+    
+    # storing the guess history as a vector
+    guess_history <- c(guess_history, guess)
+    # storing the feedback history as a list
+    feedback_history[[length(feedback_history) + 1]] <- response
+    
+    # print out the guess and response symbols in succession
+    print(paste(split_guess, collapse = " "))
+    print(paste(response, collapse = " "))
+    
+    # WIN code chunk
+    if(all(response == "*")) { # looks to see if all of the characters are in the correct position
+      print("You WON! :)") # if so, it prints this
+      print("Feedback history:") # and the feedback and guess history
+      for(i in 1:length(guess_history)) {
+        # pastes guess and feedback history for each round together
+        print(paste(guess_history[i], ":", paste(feedback_history[[i]], collapse = " ")))
+      }
+      print("Total number of guesses:")
+      return(guessNumber) # returns total guess number
+    }
+  }
+  
+  # LOST code chunk
+  print(paste("You LOST :( The answer was", paste(solution, collapse=""))) # printing solution
+  print("Feedback history:") # printing feedback and guess history
+  for(i in 1:length(guess_history)) {
+    # pastes guess and feedback history for each round together
+    print(paste(guess_history[i], ":", paste(feedback_history[[i]], collapse = " ")))
+  }
+  
+  # returning total number of guesses
+  print("Total number of guesses:")
+  return(guessNumber)
+}
+```
+
+
+```{r}
+#| eval: false
+# drawing a solution from "pick_solution()"
+solution <- pick_solution(solution_list)
+
+# using the "play_wordle()" function to play!
+play_wordle(solution, valid_list) # number of guesses is set to its default of 6
+```
+
+This was fun!
